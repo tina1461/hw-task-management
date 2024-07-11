@@ -1,5 +1,4 @@
-// pages/TaskPage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Task } from "@/models/Task";
 import { TaskList } from "../components/TaskList";
 import { TaskForm } from "@/components/TaskForm";
@@ -13,23 +12,25 @@ import {
   Button,
 } from "@/components/ui";
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Learn TypeScript",
-    description: "Study the basics of TypeScript.",
-    completed: false,
-  },
-  {
-    id: "2",
-    title: "Build a React app",
-    description: "Create a new React application.",
-    completed: false,
-  },
-];
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui";
+
+import { QuestionMarkCircleIcon } from "@heroicons/react/20/solid";
 
 export const TaskPage: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [open, setOpen] = useState(false);
+  const [tasks, setTasks] = useState(() => {
+    const savedTasks = localStorage.getItem("tasks");
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   const addTask = (task: Omit<Task, "id">) => {
     const newTask: Task = {
@@ -37,37 +38,68 @@ export const TaskPage: React.FC = () => {
       ...task,
     };
     setTasks([...tasks, newTask]);
+    setOpen(false);
   };
 
   const toggleCompleted = (id: string) => {
     setTasks(
-      tasks.map((task) =>
+      tasks.map((task: Task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
       )
     );
   };
 
+  const deleteTask = (id: string) => {
+    setTasks(tasks.filter((task: Task) => task.id !== id));
+  };
+
   return (
-    <div>
-      <div className="container max-auto">
-        <div className="flex justify-between items-center mb-5">
-          <h1>Task Management</h1>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>Add Task</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add a New Task</DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to add a new task.
-                </DialogDescription>
-              </DialogHeader>
-              <TaskForm onAddTask={addTask} />
-            </DialogContent>
-          </Dialog>
+    <div className="flex flex-col min-h-screen">
+      <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className="text-lg font-bold">Task Management</div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <QuestionMarkCircleIcon className="w-5 h-5 text-white cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-500 text-white max-w-52">
+                <p>
+                  Task Management helps you organize and track tasks. Add,
+                  complete, delete, and reorder tasks easily. Keep your to-do
+                  list clear and manage tasks efficiently.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <TaskList tasks={tasks} onToggleCompleted={toggleCompleted} />
+
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button
+              className="border border-white hover:bg-slate-500"
+              onClick={() => setOpen(true)}
+            >
+              Add Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add a New Task</DialogTitle>
+              <DialogDescription>
+                Fill in the details below to add a new task.
+              </DialogDescription>
+            </DialogHeader>
+            <TaskForm onAddTask={addTask} />
+          </DialogContent>
+        </Dialog>
+      </header>
+      <div className="p-5 container max-auto">
+        <TaskList
+          tasks={tasks}
+          onToggleCompleted={toggleCompleted}
+          onDeleteTask={deleteTask}
+        />
       </div>
     </div>
   );
