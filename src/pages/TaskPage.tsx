@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+
 import { Task } from "@/models/Task";
 import { TaskList } from "../components/TaskList";
 import { TaskForm } from "@/components/TaskForm";
@@ -94,13 +97,16 @@ export const TaskPage: React.FC = () => {
           </DialogContent>
         </Dialog>
       </header>
-      <div className="p-5 container max-auto">
-        <TaskList
-          tasks={tasks}
-          onToggleCompleted={toggleCompleted}
-          onDeleteTask={deleteTask}
-        />
-      </div>
+      <DndProvider backend={HTML5Backend}>
+        <div className="p-5 container max-auto">
+          <TaskList
+            tasks={tasks}
+            onToggleCompleted={toggleCompleted}
+            onDeleteTask={deleteTask}
+            updateTasks={setTasks}
+          />
+        </div>
+      </DndProvider>
     </div>
   );
 };
