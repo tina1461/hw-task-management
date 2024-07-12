@@ -37,16 +37,16 @@ export const TaskPage: React.FC = () => {
 
   const addTask = (task: Omit<Task, "id">) => {
     const newTask: Task = {
-      id: (tasks.length + 1).toString(),
+      id: Math.random().toString(36).substr(2, 9),
       ...task,
     };
-    setTasks([...tasks, newTask]);
+    setTasks((prevState: Task[]) => [...prevState, newTask]);
     setOpen(false);
   };
 
   const toggleCompleted = (id: string) => {
-    setTasks(
-      tasks.map((task: Task) =>
+    setTasks((prevState: Task[]) =>
+      prevState.map((task: Task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
       )
     );
